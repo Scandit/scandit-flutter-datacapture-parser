@@ -100,7 +100,7 @@ public class ScanditFlutterDataCaptureParser: NSObject {
         guard let id = arguments["parserId"] as? String,
               let data = arguments["data"] as? String,
               let parser = parser(with: id) else {
-            result(FlutterError.componentNotFound)
+                  result(FlutterError.componentNotFound)
             return
         }
         do {

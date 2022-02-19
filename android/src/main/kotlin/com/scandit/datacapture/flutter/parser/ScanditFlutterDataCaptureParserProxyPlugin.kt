@@ -35,7 +35,7 @@ class ScanditFlutterDataCaptureParserProxyPlugin : FlutterPlugin, MethodChannel.
     private var methodChannel: MethodChannel? = null
 
     private var scanditFlutterDataCaptureParserPlugin:
-            ScanditFlutterDataCaptureParserMethodHandler? = null
+        ScanditFlutterDataCaptureParserMethodHandler? = null
 
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
         scanditFlutterDataCaptureParserPlugin = ScanditFlutterDataCaptureParserMethodHandler()

@@ -21,7 +21,7 @@ class ParsedField {
 
   factory ParsedField.fromJSON(Map<String, dynamic> json) {
     var issues = <String>[];
-    if (json.containsKey('issues')) {
+    if (json.containsKey('issues') && json["issues"] != null) {
       issues.addAll(json['issues'] as List<String>);
     }
     return ParsedField._(json['name'], json['parsed'], json['rawString'], issues);

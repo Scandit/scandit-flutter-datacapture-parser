@@ -23,9 +23,10 @@ import org.json.JSONObject
 
 class ScanditFlutterDataCaptureParserMethodHandler(
     private val parserDeserializer: ParserDeserializer = ParserDeserializer()
-) : FlutterPlugin, ParserDeserializerListener, MethodChannel.MethodCallHandler,
+) : FlutterPlugin,
+    ParserDeserializerListener,
+    MethodChannel.MethodCallHandler,
     DataCaptureContextLifecycleObserver.Callbacks {
-    private var methodChannel: MethodChannel? = null
 
     private val parsers: MutableMap<String, Parser> = mutableMapOf()
 
@@ -38,7 +39,6 @@ class ScanditFlutterDataCaptureParserMethodHandler(
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         Deserializers.Factory.removeComponentDeserializer(parserDeserializer)
         parserDeserializer.listener = null
-        methodChannel?.setMethodCallHandler(null)
         parsers.clear()
         DataCaptureContextLifecycleObserver.callbacks -= this
     }
@@ -85,6 +85,7 @@ class ScanditFlutterDataCaptureParserMethodHandler(
         val base64Bytes = try {
             Base64.decode(data, 0)
         } catch (e: IllegalArgumentException) {
+            println(e)
             result.reject(ERROR_INVALID_BASE_64)
 
             return
