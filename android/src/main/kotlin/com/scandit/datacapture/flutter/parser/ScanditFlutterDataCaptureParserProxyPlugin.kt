@@ -9,27 +9,18 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.PluginRegistry
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /** ScanditFlutterDataCaptureParserProxyPlugin. */
 class ScanditFlutterDataCaptureParserProxyPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     companion object {
-        @Suppress("unused")
         @JvmStatic
-        fun registerWith(registrar: PluginRegistry.Registrar) {
-            val plugin = ScanditFlutterDataCaptureParserProxyPlugin()
+        private val lock = ReentrantLock()
 
-            val channel = MethodChannel(
-                registrar.messenger(),
-                "com.scandit.datacapture.parser.method/parser"
-            )
-
-            plugin.scanditFlutterDataCaptureParserPlugin =
-                ScanditFlutterDataCaptureParserMethodHandler()
-
-            channel.setMethodCallHandler(plugin.scanditFlutterDataCaptureParserPlugin)
-        }
+        @JvmStatic
+        private var isPluginAttached = false
     }
 
     private var methodChannel: MethodChannel? = null
@@ -38,21 +29,29 @@ class ScanditFlutterDataCaptureParserProxyPlugin : FlutterPlugin, MethodChannel.
         ScanditFlutterDataCaptureParserMethodHandler? = null
 
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
-        scanditFlutterDataCaptureParserPlugin = ScanditFlutterDataCaptureParserMethodHandler()
-        scanditFlutterDataCaptureParserPlugin?.onAttachedToEngine(binding)
-        methodChannel = MethodChannel(
-            binding.binaryMessenger,
-            "com.scandit.datacapture.parser.method/parser"
-        ).also {
-            it.setMethodCallHandler(scanditFlutterDataCaptureParserPlugin)
+        lock.withLock {
+            if (isPluginAttached) return
+
+            scanditFlutterDataCaptureParserPlugin = ScanditFlutterDataCaptureParserMethodHandler()
+            scanditFlutterDataCaptureParserPlugin?.onAttachedToEngine(binding)
+            methodChannel = MethodChannel(
+                binding.binaryMessenger,
+                "com.scandit.datacapture.parser.method/parser"
+            ).also {
+                it.setMethodCallHandler(scanditFlutterDataCaptureParserPlugin)
+            }
+            isPluginAttached = true
         }
     }
 
     override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
-        scanditFlutterDataCaptureParserPlugin?.onDetachedFromEngine(binding)
-        scanditFlutterDataCaptureParserPlugin = null
-        methodChannel?.setMethodCallHandler(null)
-        methodChannel = null
+        lock.withLock {
+            scanditFlutterDataCaptureParserPlugin?.onDetachedFromEngine(binding)
+            scanditFlutterDataCaptureParserPlugin = null
+            methodChannel?.setMethodCallHandler(null)
+            methodChannel = null
+            isPluginAttached = false
+        }
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
