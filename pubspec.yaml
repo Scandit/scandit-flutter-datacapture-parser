@@ -1,6 +1,6 @@
 name: scandit_flutter_datacapture_parser
 description: Scandit Data Capture SDK for Flutter. ScanditParser implements the parsing capabilities of the Scandit Data Capture SDK.
-version: 6.13.1
+version: 6.14.0
 homepage: https://scandit.com
 
 
@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
   meta: ^1.3.0
   scandit_flutter_datacapture_core:
-    '>=6.13.1 <6.13.2'
+    '>=6.14.0 <6.14.1'
 
 dev_dependencies:
   flutter_test:
