@@ -19,11 +19,13 @@ extension ScanditFlutterDataCaptureParser {
 extension ScanditFlutterDataCaptureParser: ParserDeserializerDelegate {
     public func parserDeserializer(_ parserDeserializer: ParserDeserializer,
                                    didStartDeserializingParser parser: Parser,
-                                   from JSONValue: JSONValue) {}
+                                   from jsonValue: JSONValue) {
+        // not used in frameworks
+    }
 
     public func parserDeserializer(_ parserDeserializer: ParserDeserializer,
                                    didFinishDeserializingParser parser: Parser,
-                                   from JSONValue: JSONValue) {
+                                   from jsonValue: JSONValue) {
         parsers[parser.componentId] = parser
     }
 }
