@@ -53,7 +53,7 @@ class Parser extends DataCaptureComponent implements Serializable {
   @override
   Map<String, dynamic> toMap() {
     var json = super.toMap();
-    json.addAll({'type': 'parser', 'dataFormat': _dataFormat.toString(), 'options': _options});
+    json.addAll({'type': 'parser', 'dataFormat': _dataFormat.jsonValue, 'options': _options});
     return json;
   }
 }
