@@ -6,6 +6,7 @@
 
 import Flutter
 import scandit_flutter_datacapture_core
+import ScanditFrameworksCore
 import ScanditParser
 import UIKit
 
@@ -56,18 +57,18 @@ fileprivate extension FlutterError {
 }
 
 @objc
-public class ScanditFlutterDataCaptureParser: NSObject {
+public class ScanditFlutterDataCaptureParser: NSObject, DeserializationLifeCycleObserver {
 
     private let methodChannel: FlutterMethodChannel
 
     internal var parsers: [String: Parser] = [:]
 
     private func parser(with id: String) -> Parser? {
-        defer {
-            let toBeRemoved = parsers.keys.filter { ScanditFlutterDataCaptureCore.hasComponent(with: $0) == false }
-            toBeRemoved.forEach { parsers.removeValue(forKey: $0) }
-        }
         return parsers[id]
+    }
+
+    public func parsersRemoved() {
+        parsers.removeAll()
     }
 
     @objc

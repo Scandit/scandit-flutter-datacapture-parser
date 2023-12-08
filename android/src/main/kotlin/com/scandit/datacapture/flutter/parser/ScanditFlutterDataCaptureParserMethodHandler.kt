@@ -8,11 +8,11 @@ package com.scandit.datacapture.flutter.parser
 
 import android.util.Base64
 import com.scandit.datacapture.core.json.JsonValue
-import com.scandit.datacapture.flutter.core.deserializers.DataCaptureContextLifecycleObserver
-import com.scandit.datacapture.flutter.core.deserializers.Deserializers
 import com.scandit.datacapture.flutter.core.utils.Error
 import com.scandit.datacapture.flutter.core.utils.reject
 import com.scandit.datacapture.flutter.parser.data.SerializableParseRequest
+import com.scandit.datacapture.frameworks.core.deserialization.DeserializationLifecycleObserver
+import com.scandit.datacapture.frameworks.core.deserialization.Deserializers
 import com.scandit.datacapture.parser.Parser
 import com.scandit.datacapture.parser.serialization.ParserDeserializer
 import com.scandit.datacapture.parser.serialization.ParserDeserializerListener
@@ -26,21 +26,21 @@ class ScanditFlutterDataCaptureParserMethodHandler(
 ) : FlutterPlugin,
     ParserDeserializerListener,
     MethodChannel.MethodCallHandler,
-    DataCaptureContextLifecycleObserver.Callbacks {
+    DeserializationLifecycleObserver.Observer {
 
     private val parsers: MutableMap<String, Parser> = mutableMapOf()
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         parserDeserializer.listener = this
         Deserializers.Factory.addComponentDeserializer(parserDeserializer)
-        DataCaptureContextLifecycleObserver.callbacks += this
+        DeserializationLifecycleObserver.attach(this)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         Deserializers.Factory.removeComponentDeserializer(parserDeserializer)
         parserDeserializer.listener = null
         parsers.clear()
-        DataCaptureContextLifecycleObserver.callbacks -= this
+        DeserializationLifecycleObserver.detach(this)
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
