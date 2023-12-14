@@ -7,13 +7,10 @@
 enum ParserDataFormat {
   gs1Ai('gs1ai'),
   hibc('hibc'),
-  @Deprecated('Use ID Capture instead.')
   dlid('dlid'),
-  @Deprecated('Use ID Capture instead.')
   mrtd('mrtd'),
   swissQr('swissQr'),
   vin('vin'),
-  @Deprecated('Use ID Capture instead.')
   usUsid('usUsid');
 
   const ParserDataFormat(this._name);
