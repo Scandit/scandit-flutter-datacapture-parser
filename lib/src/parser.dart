@@ -18,24 +18,22 @@ class Parser extends DataCaptureComponent implements Serializable {
 
   late _ParserController _controller;
 
-  late ParserDataFormat _dataFormat;
+  final ParserDataFormat _dataFormat;
 
   final Map<String, dynamic> _options = {};
 
-  late DataCaptureContext _context;
+  // ignore: unused_field
+  final DataCaptureContext _context;
 
   static Future<Parser> forContextAndFormat(DataCaptureContext context, ParserDataFormat dataFormat) {
-    var parser = Parser._();
-    parser._dataFormat = dataFormat;
-    parser._context = context;
-    var future = context.addComponent(parser).then((_) => parser);
-    return future;
+    var parser = Parser._(context, dataFormat);
+    return parser._controller.createUpdateNativeInstance().then((value) => parser);
   }
 
   Future<void> setOptions(Map<String, dynamic> options) {
     _options.clear();
     _options.addAll(options);
-    return _context.update();
+    return _controller.createUpdateNativeInstance();
   }
 
   Future<ParsedData> parseString(String data) {
@@ -46,8 +44,12 @@ class Parser extends DataCaptureComponent implements Serializable {
     return _controller.parseRawData(data);
   }
 
-  Parser._() : super(DateTime.now().toUtc().millisecondsSinceEpoch.toString()) {
+  Parser._(this._context, this._dataFormat) : super(DateTime.now().toUtc().millisecondsSinceEpoch.toString()) {
     _controller = _ParserController(this);
+  }
+
+  void dispose() {
+    _controller.dispose();
   }
 
   @override
@@ -61,21 +63,26 @@ class Parser extends DataCaptureComponent implements Serializable {
 class _ParserController {
   final Parser _parser;
 
-  final MethodChannel _methodChannel = MethodChannel('com.scandit.datacapture.parser.method/parser');
+  final MethodChannel _methodChannel = MethodChannel('com.scandit.datacapture.parser/method_channel');
 
   _ParserController(this._parser);
+
+  Future<void> createUpdateNativeInstance() {
+    var encoded = jsonEncode(this._parser.toMap());
+    return _methodChannel.invokeMethod(FunctionNames.createUpdateNativeInstance, encoded).onError(_onError);
+  }
 
   Future<ParsedData> parseString(String data) {
     var arguments = _createParserInvocationArgs(data);
     return _methodChannel
-        .invokeMethod(FunctionNames.parseStringMethodName, arguments)
+        .invokeMethod(FunctionNames.parseStringMethodName, jsonEncode(arguments))
         .then(_parseData, onError: _onError);
   }
 
   Future<ParsedData> parseRawData(String data) {
     var arguments = _createParserInvocationArgs(data);
     return _methodChannel
-        .invokeMethod(FunctionNames.parseRawDataMethodName, arguments)
+        .invokeMethod(FunctionNames.parseRawDataMethodName, jsonEncode(arguments))
         .then(_parseData, onError: _onError);
   }
 
@@ -99,5 +106,9 @@ class _ParserController {
     }
 
     throw error;
+  }
+
+  void dispose() {
+    _methodChannel.invokeMethod(FunctionNames.disposeParser, _parser.id).onError(_onError);
   }
 }
