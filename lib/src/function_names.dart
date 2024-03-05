@@ -7,6 +7,4 @@
 class FunctionNames {
   static const String parseStringMethodName = 'parseString';
   static const String parseRawDataMethodName = 'parseRawData';
-  static const String createUpdateNativeInstance = 'createUpdateNativeInstance';
-  static const String disposeParser = 'disposeParser';
 }

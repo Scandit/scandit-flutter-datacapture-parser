@@ -5,7 +5,6 @@
  */
 package com.scandit.datacapture.flutter.parser
 
-import com.scandit.datacapture.frameworks.parser.ParserModule
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -28,12 +27,10 @@ class ScanditFlutterDataCaptureParserProxyPlugin : FlutterPlugin, ActivityAware 
 
     private var methodChannel: MethodChannel? = null
 
-    private var methodHandler:
-            ParserMethodHandler? = null
+    private var scanditFlutterDataCaptureParserPlugin:
+        ScanditFlutterDataCaptureParserMethodHandler? = null
 
     private var flutterPluginBinding: WeakReference<FlutterPluginBinding?> = WeakReference(null)
-
-    private var parserModule: ParserModule? = null
 
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
         flutterPluginBinding = WeakReference(binding)
@@ -70,28 +67,26 @@ class ScanditFlutterDataCaptureParserProxyPlugin : FlutterPlugin, ActivityAware 
 
     private fun onDetached() {
         lock.withLock {
-            disposeModule()
+            val flutterBinding = flutterPluginBinding.get() ?: return
+            disposeModule(flutterBinding)
             isPluginAttached = false
         }
     }
 
     private fun setupModule(binding: FlutterPluginBinding) {
-        val module = ParserModule().also {
-            it.onCreate(binding.applicationContext)
-        }
-        methodHandler = ParserMethodHandler(module)
+        scanditFlutterDataCaptureParserPlugin = ScanditFlutterDataCaptureParserMethodHandler()
+        scanditFlutterDataCaptureParserPlugin?.onAttachedToEngine(binding)
         methodChannel = MethodChannel(
             binding.binaryMessenger,
-            "com.scandit.datacapture.parser/method_channel"
+            "com.scandit.datacapture.parser.method/parser"
         ).also {
-            it.setMethodCallHandler(methodHandler)
+            it.setMethodCallHandler(scanditFlutterDataCaptureParserPlugin)
         }
-        parserModule = module
     }
 
-    private fun disposeModule() {
-        parserModule?.onDestroy()
-        methodHandler = null
+    private fun disposeModule(binding: FlutterPluginBinding) {
+        scanditFlutterDataCaptureParserPlugin?.onDetachedFromEngine(binding)
+        scanditFlutterDataCaptureParserPlugin = null
         methodChannel?.setMethodCallHandler(null)
         methodChannel = null
     }
