@@ -29,7 +29,7 @@ class ScanditFlutterDataCaptureParserProxyPlugin : FlutterPlugin, ActivityAware 
     private var methodChannel: MethodChannel? = null
 
     private var methodHandler:
-            ParserMethodHandler? = null
+        ParserMethodHandler? = null
 
     private var flutterPluginBinding: WeakReference<FlutterPluginBinding?> = WeakReference(null)
 
