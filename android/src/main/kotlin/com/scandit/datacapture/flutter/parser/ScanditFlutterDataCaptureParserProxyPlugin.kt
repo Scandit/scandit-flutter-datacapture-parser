@@ -5,7 +5,6 @@
  */
 package com.scandit.datacapture.flutter.parser
 
-import com.scandit.datacapture.frameworks.core.locator.DefaultServiceLocator
 import com.scandit.datacapture.frameworks.parser.ParserModule
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding
@@ -30,20 +29,18 @@ class ScanditFlutterDataCaptureParserProxyPlugin : FlutterPlugin, ActivityAware 
     private var methodChannel: MethodChannel? = null
 
     private var methodHandler:
-        ParserMethodHandler? = null
+            ParserMethodHandler? = null
 
     private var flutterPluginBinding: WeakReference<FlutterPluginBinding?> = WeakReference(null)
 
-    private val serviceLocator = DefaultServiceLocator.getInstance()
+    private var parserModule: ParserModule? = null
 
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
         flutterPluginBinding = WeakReference(binding)
-        onAttached()
     }
 
     override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
         flutterPluginBinding = WeakReference(null)
-        onDetached()
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -64,9 +61,7 @@ class ScanditFlutterDataCaptureParserProxyPlugin : FlutterPlugin, ActivityAware 
 
     private fun onAttached() {
         lock.withLock {
-            if (isPluginAttached) {
-                disposeModule()
-            }
+            if (isPluginAttached) return
             val flutterBinding = flutterPluginBinding.get() ?: return
             setupModule(flutterBinding)
             isPluginAttached = true
@@ -91,11 +86,11 @@ class ScanditFlutterDataCaptureParserProxyPlugin : FlutterPlugin, ActivityAware 
         ).also {
             it.setMethodCallHandler(methodHandler)
         }
-        serviceLocator.register(module)
+        parserModule = module
     }
 
     private fun disposeModule() {
-        serviceLocator.remove(ParserModule::class.java.name)?.onDestroy()
+        parserModule?.onDestroy()
         methodHandler = null
         methodChannel?.setMethodCallHandler(null)
         methodChannel = null
