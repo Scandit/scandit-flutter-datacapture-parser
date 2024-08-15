@@ -14,7 +14,9 @@ enum ParserDataFormat {
   swissQr('swissQr'),
   vin('vin'),
   @Deprecated('Use ID Capture instead.')
-  usUsid('usUsid');
+  usUsid('usUsid'),
+  iataBcbp('iataBcbp'),
+  gs1DigitalLink('gs1DigitalLink');
 
   const ParserDataFormat(this._name);
 
