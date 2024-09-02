@@ -10,4 +10,3 @@ export 'src/parsed_data.dart' show ParsedData;
 export 'src/parsed_field.dart' show ParsedField;
 export 'src/parser.dart' show Parser;
 export 'src/parser_dataformat.dart' show ParserDataFormat;
-export 'src/parser_issue.dart' show ParserIssue, ParserIssueAdditionalInfoKey, ParserIssueCode;

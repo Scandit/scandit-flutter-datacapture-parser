@@ -18,17 +18,13 @@ class ParsedData {
   final Map<String, ParsedField> _fieldsByName;
   Map<String, ParsedField> get fieldsByName => _fieldsByName;
 
-  final List<ParsedField> _fieldsWithIssues;
-  List<ParsedField> get fieldsWithIssues => _fieldsWithIssues;
-
-  ParsedData._(this._jsonString, this._fields, this._fieldsByName, this._fieldsWithIssues);
+  ParsedData._(this._jsonString, this._fields, this._fieldsByName);
 
   factory ParsedData.fromJSON(List<Map<String, dynamic>> json) {
     var jsonString = jsonEncode(json);
     var fields = json.map((e) => ParsedField.fromJSON(e)).toList();
     var fieldsByName = Map<String, ParsedField>.fromIterable(fields,
         key: (element) => (element as ParsedField).name, value: (element) => element as ParsedField);
-    var fieldsWithIssues = fields.where((item) => item.warnings.isNotEmpty).toList();
-    return ParsedData._(jsonString, fields, fieldsByName, fieldsWithIssues);
+    return ParsedData._(jsonString, fields, fieldsByName);
   }
 }
