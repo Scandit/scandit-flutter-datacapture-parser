@@ -77,7 +77,7 @@ public class ScanditFlutterDataCaptureParserProxyPlugin implements FlutterPlugin
     private void setupModules(@NonNull FlutterPluginBinding binding) {
         lock.lock();
         try {
-            ParserModule parserModule = (ParserModule) serviceLocator.remove(ParserModule.class.getName());
+            ParserModule parserModule = (ParserModule) serviceLocator.resolve(ParserModule.class.getName());
             if (parserModule != null) return;
 
             parserModule = new ParserModule();
