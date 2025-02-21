@@ -26,8 +26,7 @@ class ParsedData {
   factory ParsedData.fromJSON(List<Map<String, dynamic>> json) {
     var jsonString = jsonEncode(json);
     var fields = json.map((e) => ParsedField.fromJSON(e)).toList();
-    var fieldsByName = Map<String, ParsedField>.fromIterable(fields,
-        key: (element) => (element as ParsedField).name, value: (element) => element as ParsedField);
+    var fieldsByName = {for (var element in fields) element.name: element};
     var fieldsWithIssues = fields.where((item) => item.warnings.isNotEmpty).toList();
     return ParsedData._(jsonString, fields, fieldsByName, fieldsWithIssues);
   }
