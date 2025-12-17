@@ -24,11 +24,12 @@ class Parser extends DataCaptureComponent implements Serializable {
 
   final Map<String, dynamic> _options = {};
 
-  // ignore: unused_field
-  final DataCaptureContext _context;
+  Parser._(this._dataFormat) : super(DateTime.now().toUtc().millisecondsSinceEpoch.toString()) {
+    _controller = _ParserController(this);
+  }
 
-  static Future<Parser> forContextAndFormat(DataCaptureContext context, ParserDataFormat dataFormat) {
-    var parser = Parser._(context, dataFormat);
+  static Future<Parser> create(ParserDataFormat dataFormat) {
+    var parser = Parser._(dataFormat);
     return parser._controller.createUpdateNativeInstance().then((value) => parser);
   }
 
@@ -44,10 +45,6 @@ class Parser extends DataCaptureComponent implements Serializable {
 
   Future<ParsedData> parseRawData(String data) {
     return _controller.parseRawData(data);
-  }
-
-  Parser._(this._context, this._dataFormat) : super(DateTime.now().toUtc().millisecondsSinceEpoch.toString()) {
-    _controller = _ParserController(this);
   }
 
   void dispose() {
