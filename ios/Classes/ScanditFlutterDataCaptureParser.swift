@@ -5,8 +5,8 @@
  */
 
 import Flutter
-import ScanditFrameworksParser
 import scandit_flutter_datacapture_core
+import ScanditFrameworksParser
 
 @objc
 public class ScanditFlutterDataCaptureParser: NSObject, FlutterPlugin {
@@ -20,15 +20,11 @@ public class ScanditFlutterDataCaptureParser: NSObject, FlutterPlugin {
 
     @objc
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let methodChannel = FlutterMethodChannel(
-            name: "com.scandit.datacapture.parser/method_channel",
-            binaryMessenger: registrar.messenger()
-        )
+        let methodChannel = FlutterMethodChannel(name: "com.scandit.datacapture.parser/method_channel",
+                                                 binaryMessenger: registrar.messenger())
         let parserModule = ParserModule()
-        let plugin = ScanditFlutterDataCaptureParser(
-            methodChannel: methodChannel,
-            parserModule: parserModule
-        )
+        let plugin = ScanditFlutterDataCaptureParser(methodChannel: methodChannel,
+                                                     parserModule: parserModule)
         let methodHandler = ParserMethodCallHandler(parserModule: parserModule)
         parserModule.didStart()
         methodChannel.setMethodCallHandler(methodHandler.handleMethodCall(_:result:))
