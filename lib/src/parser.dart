@@ -7,13 +7,11 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:scandit_flutter_datacapture_core/scandit_flutter_datacapture_core.dart';
-import 'package:scandit_flutter_datacapture_parser/src/internal/generated/parser_method_handler.dart';
+import 'function_names.dart';
 import 'parsed_data.dart';
 import 'parser_dataformat.dart';
-
-// ignore: implementation_imports
-import 'package:scandit_flutter_datacapture_core/src/internal/base_controller.dart';
 
 class Parser extends DataCaptureComponent implements Serializable {
   @override
@@ -26,12 +24,11 @@ class Parser extends DataCaptureComponent implements Serializable {
 
   final Map<String, dynamic> _options = {};
 
-  Parser._(this._dataFormat) : super(DateTime.now().toUtc().millisecondsSinceEpoch.toString()) {
-    _controller = _ParserController(this);
-  }
+  // ignore: unused_field
+  final DataCaptureContext _context;
 
-  static Future<Parser> create(ParserDataFormat dataFormat) {
-    var parser = Parser._(dataFormat);
+  static Future<Parser> forContextAndFormat(DataCaptureContext context, ParserDataFormat dataFormat) {
+    var parser = Parser._(context, dataFormat);
     return parser._controller.createUpdateNativeInstance().then((value) => parser);
   }
 
@@ -49,6 +46,10 @@ class Parser extends DataCaptureComponent implements Serializable {
     return _controller.parseRawData(data);
   }
 
+  Parser._(this._context, this._dataFormat) : super(DateTime.now().toUtc().millisecondsSinceEpoch.toString()) {
+    _controller = _ParserController(this);
+  }
+
   void dispose() {
     _controller.dispose();
   }
@@ -61,27 +62,34 @@ class Parser extends DataCaptureComponent implements Serializable {
   }
 }
 
-class _ParserController extends BaseController {
+class _ParserController {
   final Parser _parser;
-  late final ParserMethodHandler parserMethodHandler;
 
-  _ParserController(this._parser) : super('com.scandit.datacapture.parser/method_channel') {
-    parserMethodHandler = ParserMethodHandler(methodChannel);
-  }
+  final MethodChannel _methodChannel = const MethodChannel('com.scandit.datacapture.parser/method_channel');
+
+  _ParserController(this._parser);
 
   Future<void> createUpdateNativeInstance() {
     var encoded = jsonEncode(_parser.toMap());
-    return parserMethodHandler.createUpdateNativeInstance(parserJson: encoded).onError(onError);
+    return _methodChannel.invokeMethod(FunctionNames.createUpdateNativeInstance, encoded).onError(_onError);
   }
 
-  Future<ParsedData> parseString(String data) async {
-    final result = await parserMethodHandler.parseString(parserId: _parser.id, data: data);
-    return _parseData(result);
+  Future<ParsedData> parseString(String data) {
+    var arguments = _createParserInvocationArgs(data);
+    return _methodChannel
+        .invokeMethod(FunctionNames.parseStringMethodName, jsonEncode(arguments))
+        .then(_parseData, onError: _onError);
   }
 
-  Future<ParsedData> parseRawData(String data) async {
-    final result = await parserMethodHandler.parseRawData(parserId: _parser.id, data: data);
-    return _parseData(result);
+  Future<ParsedData> parseRawData(String data) {
+    var arguments = _createParserInvocationArgs(data);
+    return _methodChannel
+        .invokeMethod(FunctionNames.parseRawDataMethodName, jsonEncode(arguments))
+        .then(_parseData, onError: _onError);
+  }
+
+  Map<String, dynamic> _createParserInvocationArgs(String data) {
+    return {'parserId': _parser.id, 'data': data};
   }
 
   FutureOr<ParsedData> _parseData(dynamic result) {
@@ -91,8 +99,12 @@ class _ParserController extends BaseController {
     return parsedData;
   }
 
-  @override
+  void _onError(Object? error, StackTrace? stackTrace) {
+    if (error == null) return;
+    throw error;
+  }
+
   void dispose() {
-    parserMethodHandler.disposeParser(parserId: _parser.id).onError(onError);
+    _methodChannel.invokeMethod(FunctionNames.disposeParser, _parser.id).onError(_onError);
   }
 }
