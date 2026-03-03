@@ -14,8 +14,6 @@ import 'parsed_data.dart';
 import 'parser_dataformat.dart';
 
 class Parser extends DataCaptureComponent implements Serializable {
-  @override
-  // ignore: unnecessary_overrides
   String get id => super.id;
 
   late _ParserController _controller;
@@ -65,12 +63,12 @@ class Parser extends DataCaptureComponent implements Serializable {
 class _ParserController {
   final Parser _parser;
 
-  final MethodChannel _methodChannel = const MethodChannel('com.scandit.datacapture.parser/method_channel');
+  final MethodChannel _methodChannel = MethodChannel('com.scandit.datacapture.parser/method_channel');
 
   _ParserController(this._parser);
 
   Future<void> createUpdateNativeInstance() {
-    var encoded = jsonEncode(_parser.toMap());
+    var encoded = jsonEncode(this._parser.toMap());
     return _methodChannel.invokeMethod(FunctionNames.createUpdateNativeInstance, encoded).onError(_onError);
   }
 
@@ -101,6 +99,12 @@ class _ParserController {
 
   void _onError(Object? error, StackTrace? stackTrace) {
     if (error == null) return;
+    print(error);
+
+    if (stackTrace != null) {
+      print(stackTrace);
+    }
+
     throw error;
   }
 
