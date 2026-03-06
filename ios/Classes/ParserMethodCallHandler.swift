@@ -7,7 +7,6 @@
 import Flutter
 import ScanditFrameworksCore
 import ScanditFrameworksParser
-import scandit_flutter_datacapture_core
 
 class ParserMethodCallHandler {
     private enum FunctioNames {
@@ -25,36 +24,18 @@ class ParserMethodCallHandler {
     @objc
     func handleMethodCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
-        case "executeParser":
-            guard let args = call.params() else {
-                result(FlutterError(code: "-1", message: "Missing arguments", details: nil))
-                return
-            }
-
-            let coreModuleName = String(describing: CoreModule.self)
-            guard let coreModule = DefaultServiceLocator.shared.resolve(clazzName: coreModuleName) as? CoreModule else {
-                result(
-                    FlutterError(
-                        code: "-1",
-                        message: "Unable to retrieve the CoreModule from the locator.",
-                        details: nil
-                    )
-                )
-                return
-            }
-
-            let flutterResult = FlutterFrameworkResult(reply: result)
-            let handled = coreModule.execute(
-                FlutterFrameworksMethodCall(call),
-                result: flutterResult,
-                module: self.parserModule
-            )
-
-            if !handled {
-                let methodName = call.stringValue(for: "methodName", from: args) ?? "unknown"
-                result(FlutterError(code: "-1", message: "Unknown Core method: \(methodName)", details: nil))
-            }
-
+        case FunctioNames.parseString:
+            let args = call.arguments as! String
+            parserModule.parse(parsingData: args, result: .create(result))
+        case FunctioNames.parseRawData:
+            let args = call.arguments as! String
+            parserModule.parseRawData(parsingData: args, result: .create(result))
+        case FunctioNames.createUpdateNativeInstance:
+            let args = call.arguments as! String
+            parserModule.createOrUpdateParser(parserJson: args, result: .create(result))
+        case FunctioNames.disposeParser:
+            let args = call.arguments as! String
+            parserModule.disposeParser(parserId: args, result: .create(result))
         default:
             result(FlutterMethodNotImplemented)
         }
