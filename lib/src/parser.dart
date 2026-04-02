@@ -14,8 +14,6 @@ import 'parsed_data.dart';
 import 'parser_dataformat.dart';
 
 class Parser extends DataCaptureComponent implements Serializable {
-  @override
-  // ignore: unnecessary_overrides
   String get id => super.id;
 
   late _ParserController _controller;
@@ -24,18 +22,11 @@ class Parser extends DataCaptureComponent implements Serializable {
 
   final Map<String, dynamic> _options = {};
 
-  Parser._(this._dataFormat) : super(DateTime.now().toUtc().millisecondsSinceEpoch.toString()) {
-    _controller = _ParserController(this);
-  }
+  // ignore: unused_field
+  final DataCaptureContext _context;
 
-  static Future<Parser> create(ParserDataFormat dataFormat) {
-    var parser = Parser._(dataFormat);
-    return parser._controller.createUpdateNativeInstance().then((value) => parser);
-  }
-
-  @Deprecated('Use constructor Parser(ParserDataFormat dataFormat) instead.')
   static Future<Parser> forContextAndFormat(DataCaptureContext context, ParserDataFormat dataFormat) {
-    var parser = Parser._(dataFormat);
+    var parser = Parser._(context, dataFormat);
     return parser._controller.createUpdateNativeInstance().then((value) => parser);
   }
 
@@ -53,6 +44,10 @@ class Parser extends DataCaptureComponent implements Serializable {
     return _controller.parseRawData(data);
   }
 
+  Parser._(this._context, this._dataFormat) : super(DateTime.now().toUtc().millisecondsSinceEpoch.toString()) {
+    _controller = _ParserController(this);
+  }
+
   void dispose() {
     _controller.dispose();
   }
@@ -68,12 +63,12 @@ class Parser extends DataCaptureComponent implements Serializable {
 class _ParserController {
   final Parser _parser;
 
-  final MethodChannel _methodChannel = const MethodChannel('com.scandit.datacapture.parser/method_channel');
+  final MethodChannel _methodChannel = MethodChannel('com.scandit.datacapture.parser/method_channel');
 
   _ParserController(this._parser);
 
   Future<void> createUpdateNativeInstance() {
-    var encoded = jsonEncode(_parser.toMap());
+    var encoded = jsonEncode(this._parser.toMap());
     return _methodChannel.invokeMethod(FunctionNames.createUpdateNativeInstance, encoded).onError(_onError);
   }
 
@@ -104,6 +99,12 @@ class _ParserController {
 
   void _onError(Object? error, StackTrace? stackTrace) {
     if (error == null) return;
+    print(error);
+
+    if (stackTrace != null) {
+      print(stackTrace);
+    }
+
     throw error;
   }
 
