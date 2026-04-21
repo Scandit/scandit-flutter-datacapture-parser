@@ -33,6 +33,12 @@ class Parser extends DataCaptureComponent implements Serializable {
     return parser._controller.createUpdateNativeInstance().then((value) => parser);
   }
 
+  @Deprecated('Use constructor Parser(ParserDataFormat dataFormat) instead.')
+  static Future<Parser> forContextAndFormat(DataCaptureContext context, ParserDataFormat dataFormat) {
+    var parser = Parser._(dataFormat);
+    return parser._controller.createUpdateNativeInstance().then((value) => parser);
+  }
+
   Future<void> setOptions(Map<String, dynamic> options) {
     _options.clear();
     _options.addAll(options);
