@@ -6,62 +6,97 @@
 package com.scandit.datacapture.flutter.parser;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
 
-import com.scandit.datacapture.flutter.core.BaseFlutterPlugin;
 import com.scandit.datacapture.frameworks.core.FrameworkModule;
+import com.scandit.datacapture.frameworks.core.locator.DefaultServiceLocator;
 import com.scandit.datacapture.frameworks.core.locator.ServiceLocator;
 import com.scandit.datacapture.frameworks.parser.ParserModule;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodChannel;
 
-public class ScanditFlutterDataCaptureParserProxyPlugin extends BaseFlutterPlugin implements FlutterPlugin {
+import java.util.concurrent.locks.ReentrantLock;
 
-    private static final AtomicInteger activePluginInstances = new AtomicInteger(0);
+public class ScanditFlutterDataCaptureParserProxyPlugin implements FlutterPlugin, ActivityAware {
+    private static final ReentrantLock lock = new ReentrantLock();
+
+    private final ServiceLocator<FrameworkModule> serviceLocator = DefaultServiceLocator.getInstance();
+
+    private MethodChannel methodChannel;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
-        activePluginInstances.incrementAndGet();
-        super.onAttachedToEngine(binding);
+        setupModules(binding);
+        setupMethodChannels(binding);
     }
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-        activePluginInstances.decrementAndGet();
-        super.onDetachedFromEngine(binding);
+        disposeMethodChannels();
+        disposeModules();
     }
 
     @Override
-    protected int getActivePluginInstanceCount() {
-        return activePluginInstances.get();
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        // NOOP
     }
 
     @Override
-    protected void setupMethodChannels(@NonNull FlutterPluginBinding binding, ServiceLocator<FrameworkModule> serviceLocator) {
+    public void onDetachedFromActivityForConfigChanges() {
+        // NOOP
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        // NOOP
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
+        // NOOP
+    }
+
+    private void setupMethodChannels(@NonNull FlutterPluginBinding binding) {
         ParserMethodHandler methodHandler = new ParserMethodHandler(serviceLocator);
-        MethodChannel channel = new MethodChannel(
+        methodChannel = new MethodChannel(
                 binding.getBinaryMessenger(),
                 "com.scandit.datacapture.parser/method_channel"
         );
-        channel.setMethodCallHandler(methodHandler);
-        registerChannel(channel);
+        methodChannel.setMethodCallHandler(methodHandler);
     }
 
-    @Override
-    protected void setupModules(@NonNull FlutterPluginBinding binding) {
-        ParserModule parserModule = resolveModule(ParserModule.class);
-        if (parserModule != null) return;
-
-        parserModule = new ParserModule();
-        parserModule.onCreate(binding.getApplicationContext());
-        registerModule(parserModule);
+    private void disposeMethodChannels() {
+        if (methodChannel != null) {
+            methodChannel.setMethodCallHandler(null);
+            methodChannel = null;
+        }
     }
 
-    @VisibleForTesting
-    public static void resetActiveInstances() {
-        activePluginInstances.set(0);
+    private void setupModules(@NonNull FlutterPluginBinding binding) {
+        lock.lock();
+        try {
+            ParserModule parserModule = (ParserModule) serviceLocator.resolve(ParserModule.class.getName());
+            if (parserModule != null) return;
+
+            parserModule = new ParserModule();
+            parserModule.onCreate(binding.getApplicationContext());
+            serviceLocator.register(parserModule);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void disposeModules() {
+        lock.lock();
+        try {
+            ParserModule parserModule = (ParserModule) serviceLocator.remove(ParserModule.class.getName());
+            if (parserModule != null) {
+                parserModule.onDestroy();
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 }
