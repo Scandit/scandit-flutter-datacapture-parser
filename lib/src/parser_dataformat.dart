@@ -7,11 +7,16 @@
 enum ParserDataFormat {
   gs1Ai('gs1ai'),
   hibc('hibc'),
-  swissQr('swissqr'),
+  @Deprecated('Use ID Capture instead.')
+  dlid('dlid'),
+  @Deprecated('Use ID Capture instead.')
+  mrtd('mrtd'),
+  swissQr('swissQr'),
   vin('vin'),
-  iataBcbp('iata_bcbp'),
-  gs1DigitalLink('gs1_digital_link'),
-  epc('epc');
+  @Deprecated('Use ID Capture instead.')
+  usUsid('usUsid'),
+  iataBcbp('iataBcbp'),
+  gs1DigitalLink('gs1DigitalLink');
 
   const ParserDataFormat(this._name);
 
