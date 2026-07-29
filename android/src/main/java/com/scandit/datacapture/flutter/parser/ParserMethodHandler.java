@@ -7,9 +7,7 @@ package com.scandit.datacapture.flutter.parser;
 
 import androidx.annotation.NonNull;
 
-import com.scandit.datacapture.flutter.core.utils.FlutterMethodCall;
 import com.scandit.datacapture.flutter.core.utils.FlutterResult;
-import com.scandit.datacapture.frameworks.core.CoreModule;
 import com.scandit.datacapture.frameworks.core.FrameworkModule;
 import com.scandit.datacapture.frameworks.core.locator.ServiceLocator;
 import com.scandit.datacapture.frameworks.parser.ParserModule;
@@ -27,25 +25,27 @@ public class ParserMethodHandler implements MethodChannel.MethodCallHandler {
 
     @Override
     public void onMethodCall(MethodCall call, @NonNull MethodChannel.Result result) {
-        if (call.method.equals("executeParser")) {
-            CoreModule coreModule = (CoreModule) getModule(CoreModule.class.getSimpleName());
-            if (coreModule == null) {
-                result.error("-1", "Unable to retrieve the CoreModule from the locator.", null);
-                return;
-            }
-
-            boolean executionResult = coreModule.execute(new FlutterMethodCall(call), new FlutterResult(result), getSharedModule());
-            if (!executionResult) {
-                String methodName = call.argument("methodName");
-                if (methodName == null) {
-                    methodName = "unknown";
-                }
-
-                result.error("METHOD_NOT_FOUND", "Unknown Core method: " + methodName, null);
-            }
-            return;
+        switch (call.method) {
+            case "parseString":
+                assert call.arguments() != null;
+                getSharedModule().parseString(call.arguments(), new FlutterResult(result));
+                break;
+            case "parseRawData":
+                assert call.arguments() != null;
+                getSharedModule().parseRawData(call.arguments(), new FlutterResult(result));
+                break;
+            case "createUpdateNativeInstance":
+                assert call.arguments() != null;
+                getSharedModule().createOrUpdateParser(call.arguments(), new FlutterResult(result));
+                break;
+            case "disposeParser":
+                assert call.arguments() != null;
+                getSharedModule().disposeParser(call.arguments(), new FlutterResult(result));
+                break;
+            default:
+                result.notImplemented();
+                break;
         }
-        result.notImplemented();
     }
 
     private volatile ParserModule sharedModuleInstance;
@@ -54,14 +54,10 @@ public class ParserMethodHandler implements MethodChannel.MethodCallHandler {
         if (sharedModuleInstance == null) {
             synchronized (this) {
                 if (sharedModuleInstance == null) {
-                    sharedModuleInstance = (ParserModule) this.serviceLocator.resolve(ParserModule.class.getSimpleName());
+                    sharedModuleInstance = (ParserModule) this.serviceLocator.resolve(ParserModule.class.getName());
                 }
             }
         }
         return sharedModuleInstance;
-    }
-
-    private FrameworkModule getModule(String moduleName) {
-        return this.serviceLocator.resolve(moduleName);
     }
 }

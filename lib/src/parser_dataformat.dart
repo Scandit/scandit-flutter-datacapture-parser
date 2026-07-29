@@ -10,8 +10,7 @@ enum ParserDataFormat {
   swissQr('swissqr'),
   vin('vin'),
   iataBcbp('iata_bcbp'),
-  gs1DigitalLink('gs1_digital_link'),
-  epc('epc');
+  gs1DigitalLink('gs1_digital_link');
 
   const ParserDataFormat(this._name);
 
