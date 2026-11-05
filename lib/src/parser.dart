@@ -15,7 +15,11 @@ import 'parser_dataformat.dart';
 // ignore: implementation_imports
 import 'package:scandit_flutter_datacapture_core/src/internal/base_controller.dart';
 
+/// Added in version 6.10.0
 class Parser extends DataCaptureComponent implements Serializable {
+  /// Implemented from [DataCaptureComponent]. See [DataCaptureComponent.id].
+  ///
+  /// Added in version 6.10.0
   @override
   // ignore: unnecessary_overrides
   String get id => super.id;
@@ -30,25 +34,48 @@ class Parser extends DataCaptureComponent implements Serializable {
     _controller = _ParserController(this);
   }
 
+  /// Constructs a new Parser instance with the provided dataFormat.
+  ///
+  /// Added in version 7.6.0
   static Future<Parser> create(ParserDataFormat dataFormat) {
     var parser = Parser._(dataFormat);
     return parser._controller.createUpdateNativeInstance().then((value) => parser);
   }
 
+  /// Sets the provided options on the parser.
+  ///
+  /// Available options depend on the data format type of the parser and are documented for each of the supported data formats.
+  ///
+  /// In case the options are invalid, an exception is raised. More detailed information on why creation failed is contained in the exception error message.
+  ///
+  /// Added in version 6.10.0
   Future<void> setOptions(Map<String, dynamic> options) {
     _options.clear();
     _options.addAll(options);
     return _controller.createUpdateNativeInstance();
   }
 
+  /// Parses the data string and returns the contained field in the result object. Typical inputs to this method is the data contained in a barcode (see [Barcode.data])
+  ///
+  /// In case the data string could not be parsed, an exception is raised. More detailed information on why creation failed is contained in the exception error message.
+  ///
+  /// Added in version 6.10.0
   Future<ParsedData> parseString(String data) {
     return _controller.parseString(data);
   }
 
+  /// Parses the raw data and returns the contained field in the result object. Typical inputs to this method is the raw data of a barcode (see [Barcode.rawData]).
+  ///
+  /// In case the data string could not be parsed, an exception is raised. More detailed information on why creation failed is contained in the exception error message.
+  ///
+  /// Added in version 6.10.0
   Future<ParsedData> parseRawData(String data) {
     return _controller.parseRawData(data);
   }
 
+  /// Disposes the parser.
+  ///
+  /// Added in version 6.22.0
   void dispose() {
     _controller.dispose();
   }
